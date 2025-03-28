@@ -1,3 +1,4 @@
+// Only used to make sure it's running no other use.
 console.log("Content script is running!");
 
 // Function to hide promoted feed items
