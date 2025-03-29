@@ -1,0 +1,4 @@
+.hidden-promoted {
+    display: none !important;
+    visibility: hidden !important;
+}
