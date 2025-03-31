@@ -1,4 +1,3 @@
-// Only used to make sure it's running no other use.
 console.log("Content script is running!");
 
 // --- Home Page Logic ---
@@ -27,19 +26,22 @@ function processFeed() {
     // console.log("Processed", feedItems.length, " feed items, attempted to hide", hiddenCount, " promoted items.");
 }
 
-function setupHomePageObserver() {
-    const feedContainer = document.querySelector('.scaffold-finite-scroll');
-    if (feedContainer) {
+// --- Observer setup ---
+function setupGlobalObserver() {
+    const body = document.querySelector('body');
+    if (body) {
         const observer = new MutationObserver(mutationsList => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    processFeed();
-                }
+            if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+                console.log('URL is jobs, processing jobs.');
+                processJobs();
+            } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
+                console.log('URL is feed, processing feed.');
+                processFeed();
             }
         });
-        observer.observe(feedContainer, { childList: true, subtree: true });
+        observer.observe(body, { childList: true, subtree: true });
     } else {
-        console.log('Feed container not found for MutationObserver.');
+        console.log('Body element not found for MutationObserver.');
     }
 }
 
@@ -62,56 +64,69 @@ function hidePromotedJobCard(jobCardLi) {
 }
 
 function processJobs() {
-    const jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
-    let hiddenCount = 0;
-    jobItems.forEach(item => {
-        if (hidePromotedJobCard(item)) {
-            hiddenCount++;
-        }
-    });
-    // console.log("Processed", jobItems.length, " job items, attempted to hide", hiddenCount, " promoted items.");
-}
-
-function setupJobsPageObserver() {
-    const jobsContainer = document.querySelector('.scaffold-finite-scroll__content');
-    if (jobsContainer) {
-        const observer = new MutationObserver(mutationsList => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    processJobs();
+    if (window.location.href.startsWith('https://www.linkedin.com/jobs/search')) {
+        // Logic for jobs search results page (covers both with and without trailing slash)
+        const jobItems = document.querySelectorAll('li.scaffold-layout__list-item');
+        let hiddenCount = 0;
+        jobItems.forEach(item => {
+            const promotedFooterItems = item.querySelectorAll('.job-card-container__footer-item');
+            if (promotedFooterItems) {
+                for (const footerItem of promotedFooterItems) {
+                    const promotedSpan = footerItem.querySelector('span[dir="ltr"]');
+                    if (promotedSpan && promotedSpan.textContent.trim().toLowerCase() === 'promoted') {
+                        item.style.display = 'none';
+                        hiddenCount++;
+                        break;
+                    }
                 }
             }
         });
-        observer.observe(jobsContainer, { childList: true, subtree: true });
-    } else {
-        console.log('Jobs content container not found for MutationObserver.');
+        // console.log("Processed", jobItems.length, " job items, hidden", hiddenCount, " promoted items (search).");
+    } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+        // Logic for jobs home page (using the selector that worked for you before)
+        const jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
+        let hiddenCount = 0;
+        jobItems.forEach(item => {
+            if (hidePromotedJobCard(item)) {
+                hiddenCount++;
+            }
+        });
+        // console.log("Processed", jobItems.length, " job items, attempted to hide", hiddenCount, " promoted items (home).");
     }
 }
 
 // --- Initialization ---
 window.addEventListener('load', () => {
+    setupGlobalObserver();
     if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-        console.log('On the jobs page.');
-        const jobsContainerInitial = document.querySelector('.scaffold-finite-scroll__content');
-        if (jobsContainerInitial) {
-            processJobs();
-        } else {
-            console.log('Initial jobs container not found.');
-        }
-        setupJobsPageObserver();
+        processJobs();
     } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
-        console.log('On the home page.');
         processFeed();
-        setupHomePageObserver();
     }
 });
 
-// Also try running on DOMContentLoaded for jobs page to catch elements sooner
-if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-    document.addEventListener('DOMContentLoaded', () => {
-        const jobsContainerDOMContentLoaded = document.querySelector('.scaffold-finite-scroll__content');
-        if (jobsContainerDOMContentLoaded) {
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+        processJobs();
+    } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
+        processFeed();
+    }
+});
+
+// Listen for visibility change to re-run processing when the tab becomes visible
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
             processJobs();
+        } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
+            processFeed();
         }
-    });
-}
+    }
+});
+
+// Remove hashchange listener for now as the global observer might be sufficient
+// window.addEventListener('hashchange', () => {
+//     console.log('Hash changed, checking URL for processing.');
+//     runJobsProcessing();
+//     runFeedProcessing();
+// });
