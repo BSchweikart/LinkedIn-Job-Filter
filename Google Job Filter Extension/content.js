@@ -1,5 +1,40 @@
 console.log("Content script is running!");
 
+let extensionEnabled = false; // Default to false
+let debounceTimeoutId = null;
+const debounceDelay = 200; // Adjust as needed
+let hasLoggedInfo = false;
+let currentUrl = null;
+
+// --- Helper function to get extensionEnabled state ---
+function isExtensionEnabled(callback) {
+    chrome.storage.local.get('extensionEnabled', (data) => {
+        const enabled = data.extensionEnabled === true;
+        callback(enabled);
+    });
+}
+
+function logExtensionInfo() {
+    chrome.storage.local.get('extensionEnabled', (data) => {
+        const shouldHide = data.extensionEnabled === true;
+        console.log("Extension state:", shouldHide ? "On" : "Off");
+        console.log("Current Webpage:", window.location.href);
+
+        if (window.location.href.startsWith('https://www.linkedin.com/jobs/search')) {
+            console.log("Current Function:", "processJobs (search)");
+        } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+            console.log("Current Function:", "processJobs (home/other)");
+        } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
+            console.log("Current Function:", "processFeed");
+        }
+    });
+}
+
+function initialize() {
+    setupGlobalObserver();
+    // Initial processing will be done by the event listeners
+}
+
 // --- Home Page Logic ---
 function hidePromotedFeedItem(feedPost) {
     const promotedMeta = feedPost.querySelector('.update-components-actor__meta');
@@ -17,31 +52,32 @@ function hidePromotedFeedItem(feedPost) {
 
 function processFeed() {
     const feedItems = document.querySelectorAll('.feed-shared-update-v2');
-    let hiddenCount = 0;
-    feedItems.forEach(item => {
-        if (hidePromotedFeedItem(item)) {
-            hiddenCount++;
+    isExtensionEnabled(enabled => {
+        if (enabled) {
+            feedItems.forEach(item => {
+                hidePromotedFeedItem(item);
+            });
         }
     });
-    // console.log("Processed", feedItems.length, " feed items, attempted to hide", hiddenCount, " promoted items.");
 }
 
 // --- Observer setup ---
+let bodyObserver = null; // Declare observer outside the function
+
 function setupGlobalObserver() {
     const body = document.querySelector('body');
     if (body) {
         const observer = new MutationObserver(mutationsList => {
-            if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-                console.log('URL is jobs, processing jobs.');
-                processJobs();
-            } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
-                console.log('URL is feed, processing feed.');
-                processFeed();
-            }
+            isExtensionEnabled(enabled => {
+                if (enabled) {
+                    debouncedProcessPage();
+                }
+            });
         });
         observer.observe(body, { childList: true, subtree: true });
+        bodyObserver = observer; // Assign observer to the global variable
     } else {
-        console.log('Body element not found for MutationObserver.');
+        // console.log('Body element not found for MutationObserver.'); // Removed
     }
 }
 
@@ -53,8 +89,8 @@ function hidePromotedJobCard(jobCardLi) {
             const promotedSpan = footerItem.querySelector('span[dir="ltr"]');
             if (promotedSpan && promotedSpan.textContent.trim().toLowerCase() === 'promoted') {
                 if (jobCardLi) {
-                    // console.log('Found promoted job card, adding "hidden-promoted" class:', jobCardLi);
-                    jobCardLi.classList.add('hidden-promoted');
+                    jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
+                    jobCardLi.style.display = 'none';
                     return true;
                 }
             }
@@ -64,69 +100,88 @@ function hidePromotedJobCard(jobCardLi) {
 }
 
 function processJobs() {
-    if (window.location.href.startsWith('https://www.linkedin.com/jobs/search')) {
-        // Logic for jobs search results page (covers both with and without trailing slash)
-        const jobItems = document.querySelectorAll('li.scaffold-layout__list-item');
-        let hiddenCount = 0;
-        jobItems.forEach(item => {
-            const promotedFooterItems = item.querySelectorAll('.job-card-container__footer-item');
-            if (promotedFooterItems) {
-                for (const footerItem of promotedFooterItems) {
-                    const promotedSpan = footerItem.querySelector('span[dir="ltr"]');
-                    if (promotedSpan && promotedSpan.textContent.trim().toLowerCase() === 'promoted') {
-                        item.style.display = 'none';
-                        hiddenCount++;
-                        break;
+    isExtensionEnabled(enabled => {
+        if (enabled) {
+            if (window.location.href.startsWith('https://www.linkedin.com/jobs/search')) {
+                const jobItems = document.querySelectorAll('li.scaffold-layout__list-item');
+                jobItems.forEach(item => {
+                    const promotedFooterItems = item.querySelectorAll('.job-card-container__footer-item');
+                    if (promotedFooterItems) {
+                        for (const footerItem of promotedFooterItems) {
+                            const promotedSpan = footerItem.querySelector('span[dir="ltr"]');
+                            if (promotedSpan && promotedSpan.textContent.trim().toLowerCase() === 'promoted') {
+                                item.style.display = 'none';
+                                break;
+                            }
+                        }
                     }
-                }
+                });
+            } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+                const jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
+                jobItems.forEach(item => {
+                    hidePromotedJobCard(item);
+                });
             }
-        });
-        // console.log("Processed", jobItems.length, " job items, hidden", hiddenCount, " promoted items (search).");
-    } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-        // Logic for jobs home page (using the selector that worked for you before)
-        const jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
-        let hiddenCount = 0;
-        jobItems.forEach(item => {
-            if (hidePromotedJobCard(item)) {
-                hiddenCount++;
-            }
-        });
-        // console.log("Processed", jobItems.length, " job items, attempted to hide", hiddenCount, " promoted items (home).");
-    }
+        }
+    });
 }
 
-// --- Initialization ---
-window.addEventListener('load', () => {
-    setupGlobalObserver();
-    if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-        processJobs();
-    } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
-        processFeed();
+function debouncedProcessPage() {
+    if (debounceTimeoutId) {
+        clearTimeout(debounceTimeoutId);
     }
+    debounceTimeoutId = setTimeout(() => {
+        isExtensionEnabled(enabled => {
+            if (enabled) {
+                if (window.location.href !== currentUrl) {
+                    hasLoggedInfo = false;
+                    logExtensionInfo();
+                    currentUrl = window.location.href;
+                    hasLoggedInfo = true;
+                }
+                if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+                    processJobs();
+                } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
+                    processFeed();
+                }
+            } else {
+                hasLoggedInfo = false;
+                currentUrl = null;
+            }
+        });
+        debounceTimeoutId = null;
+    }, debounceDelay);
+}
+
+// --- Initialization and Event Listeners ---
+window.addEventListener('load', () => {
+    initialize();
+    isExtensionEnabled(enabled => {
+        if (enabled) {
+            logExtensionInfo();
+            currentUrl = window.location.href; // Initialize currentUrl
+            if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+                processJobs();
+            } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
+                processFeed();
+            }
+            hasLoggedInfo = true;
+        }
+    });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-        processJobs();
-    } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
-        processFeed();
-    }
+    // Removed runProcessing();
 });
 
-// Listen for visibility change to re-run processing when the tab becomes visible
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-            processJobs();
-        } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
-            processFeed();
-        }
-    }
+    // Removed runProcessing();
 });
 
-// Remove hashchange listener for now as the global observer might be sufficient
-// window.addEventListener('hashchange', () => {
-//     console.log('Hash changed, checking URL for processing.');
-//     runJobsProcessing();
-//     runFeedProcessing();
-// });
+window.addEventListener('popstate', () => {
+    // Removed runProcessing();
+});
+
+window.addEventListener('hashchange', () => {
+    // Removed runProcessing();
+});
