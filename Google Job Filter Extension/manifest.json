@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Promoted Hider",
-  "version": "0.0.2",
+  "version": "0.0.12",
   "description": "Hides promoted content on LinkedIn.",
   "permissions": [
     "storage"
@@ -10,11 +10,16 @@
     {
       "matches": ["https://www.linkedin.com/*"],
       "js": ["content.js"],
-      "css":["content.css"]
+      "css":["content.css"],
+      "run_at": "document_end"
     },
     {
       "matches": ["https://www.linkedin.com/jobs/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
-  ]
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
 }
