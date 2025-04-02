@@ -3,9 +3,12 @@
 <head>
   <title>LinkedIn Hider</title>
   <style>
-    body { font-family: sans-serif; width: 150px; }
+    body { font-family: sans-serif; width: 180px; } /* Increased width to accommodate the checkbox */
     .toggle-container { display: flex; align-items: center; margin-top: 10px; }
     input[type="checkbox"] { margin-right: 5px; }
+    .settings-container { margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc; }
+    .options-link { display: block; margin-top: 10px; font-size: 0.9em; color: #007bff; text-decoration: none; }
+    .options-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -14,6 +17,14 @@
     <input type="checkbox" id="extensionToggle">
     <label for="extensionToggle">Hide Promoted Content</label>
   </div>
+
+  <div class="settings-container">
+    <input type="checkbox" id="delayUserHiddenPopup" name="delayUserHiddenPopup">
+    <label for="delayUserHiddenPopup">Delay hiding manually hidden jobs (5 seconds)</label>
+  </div>
+
+  <a href="#" id="openOptionsPage" class="options-link">More Settings</a>
+
   <script src="popup.js"></script>
 </body>
 </html>
