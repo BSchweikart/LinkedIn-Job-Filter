@@ -22,7 +22,7 @@ function logExtensionInfo() {
 
         if (window.location.href.startsWith('https://www.linkedin.com/jobs/search')) {
             console.log("Current Function:", "processJobs (search)");
-        } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+        } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
             console.log("Current Function:", "processJobs (home/other)");
         } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
             console.log("Current Function:", "processFeed");
@@ -66,7 +66,17 @@ let bodyObserver = null; // Declare observer outside the function
 
 function setupGlobalObserver() {
     const body = document.querySelector('body');
-    if (body) {
+    let targetNode = body;
+    const observerOptions = { childList: true, subtree: true };
+
+    if (window.location.href.startsWith('https://www.linkedin.com/jobs/search') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
+        const jobListContainer = document.querySelector('div.scaffold-layout__list');
+        if (jobListContainer) {
+            targetNode = jobListContainer;
+        }
+    }
+
+    if (targetNode) {
         const observer = new MutationObserver(mutationsList => {
             isExtensionEnabled(enabled => {
                 if (enabled) {
@@ -74,10 +84,10 @@ function setupGlobalObserver() {
                 }
             });
         });
-        observer.observe(body, { childList: true, subtree: true });
+        observer.observe(targetNode, observerOptions);
         bodyObserver = observer; // Assign observer to the global variable
     } else {
-        // console.log('Body element not found for MutationObserver.'); // Removed
+        // console.log('Target element not found for MutationObserver.'); // Removed
     }
 }
 
@@ -102,20 +112,15 @@ function hidePromotedJobCard(jobCardLi) {
 function processJobs() {
     isExtensionEnabled(enabled => {
         if (enabled) {
-            if (window.location.href.startsWith('https://www.linkedin.com/jobs/search')) {
-                const jobItems = document.querySelectorAll('li.scaffold-layout__list-item');
-                jobItems.forEach(item => {
-                    const promotedFooterItems = item.querySelectorAll('.job-card-container__footer-item');
-                    if (promotedFooterItems) {
-                        for (const footerItem of promotedFooterItems) {
-                            const promotedSpan = footerItem.querySelector('span[dir="ltr"]');
-                            if (promotedSpan && promotedSpan.textContent.trim().toLowerCase() === 'promoted') {
-                                item.style.display = 'none';
-                                break;
-                            }
-                        }
-                    }
-                });
+            let jobListContainer;
+            if (window.location.href.startsWith('https://www.linkedin.com/jobs/search') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
+                jobListContainer = document.querySelector('div.scaffold-layout__list');
+                if (jobListContainer) {
+                    const jobItems = jobListContainer.querySelectorAll('li.scaffold-layout__list-item');
+                    jobItems.forEach(item => {
+                        hidePromotedJobCard(item);
+                    });
+                }
             } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
                 const jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
                 jobItems.forEach(item => {
@@ -139,7 +144,7 @@ function debouncedProcessPage() {
                     currentUrl = window.location.href;
                     hasLoggedInfo = true;
                 }
-                if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+                if (window.location.href.startsWith('https://www.linkedin.com/jobs/') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
                     processJobs();
                 } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
                     processFeed();
@@ -160,7 +165,7 @@ window.addEventListener('load', () => {
         if (enabled) {
             logExtensionInfo();
             currentUrl = window.location.href; // Initialize currentUrl
-            if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+            if (window.location.href.startsWith('https://www.linkedin.com/jobs/') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
                 processJobs();
             } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
                 processFeed();
