@@ -110,11 +110,19 @@ function hidePromotedJobCard(jobCardLi) {
     // Check for the "We won’t show you this job again." message
     const hiddenByUserFooter = jobCardLi.querySelector('.job-card-container__footer-item--highlighted');
     if (hiddenByUserFooter && hiddenByUserFooter.textContent.trim() === 'We won’t show you this job again.') {
-        if (jobCardLi) {
-            jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
-            jobCardLi.style.display = 'none';
-            return true;
-        }
+        chrome.storage.local.get('delayUserHiddenEnabled', (data) => {
+            const shouldDelay = data.delayUserHiddenEnabled === true;
+            if (shouldDelay) {
+                setTimeout(() => {
+                    if (jobCardLi) {
+                        jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
+                        jobCardLi.style.display = 'none';
+                    }
+                }, 5000); // 5000 milliseconds = 5 seconds
+            }
+            // If shouldDelay is false or not set, we don't hide it automatically
+        });
+        return true; // Indicate that we found a user-hidden job (for consistency)
     }
     return false;
 }
