@@ -106,6 +106,16 @@ function hidePromotedJobCard(jobCardLi) {
             }
         }
     }
+
+    // Check for the "We won’t show you this job again." message
+    const hiddenByUserFooter = jobCardLi.querySelector('.job-card-container__footer-item--highlighted');
+    if (hiddenByUserFooter && hiddenByUserFooter.textContent.trim() === 'We won’t show you this job again.') {
+        if (jobCardLi) {
+            jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
+            jobCardLi.style.display = 'none';
+            return true;
+        }
+    }
     return false;
 }
 
