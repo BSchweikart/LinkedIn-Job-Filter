@@ -98,7 +98,7 @@ function hidePromotedJobCard(jobCardLi) {
         for (const footerItem of promotedFooterItems) {
             const promotedSpan = footerItem.querySelector('span[dir="ltr"]');
             if (promotedSpan && promotedSpan.textContent.trim().toLowerCase() === 'promoted') {
-                if (jobCardLi) {
+                if (jobCardLi && jobCardLi.style.display !== 'none') {
                     jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
                     jobCardLi.style.display = 'none';
                     return true;
@@ -107,23 +107,46 @@ function hidePromotedJobCard(jobCardLi) {
         }
     }
 
-    // Check for the "We won’t show you this job again." message
     const hiddenByUserFooter = jobCardLi.querySelector('.job-card-container__footer-item--highlighted');
+    const isBeingDelayed = jobCardLi.dataset.delayHide === 'true';
+
     if (hiddenByUserFooter && hiddenByUserFooter.textContent.trim() === 'We won’t show you this job again.') {
-        chrome.storage.local.get('delayUserHiddenEnabled', (data) => {
-            const shouldDelay = data.delayUserHiddenEnabled === true;
-            if (shouldDelay) {
-                setTimeout(() => {
-                    if (jobCardLi) {
-                        jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
-                        jobCardLi.style.display = 'none';
-                    }
-                }, 5000); // 5000 milliseconds = 5 seconds
-            }
-            // If shouldDelay is false or not set, we don't hide it automatically
-        });
-        return true; // Indicate that we found a user-hidden job (for consistency)
+        if (!isBeingDelayed && jobCardLi.style.display !== 'none') {
+            chrome.storage.local.get('delayUserHiddenEnabled', (data) => {
+                const shouldDelay = data.delayUserHiddenEnabled === true;
+                if (shouldDelay) {
+                    jobCardLi.dataset.delayHide = 'true';
+                    setTimeout(() => {
+                        if (jobCardLi && jobCardLi.dataset.delayHide === 'true') {
+                            jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
+                            jobCardLi.style.display = 'none';
+                        }
+                        delete jobCardLi.dataset.delayHide;
+                    }, 5000);
+                } else {
+                    jobCardLi.dataset.originalDisplay = jobCardLi.style.display || '';
+                    jobCardLi.style.display = 'none';
+                }
+            });
+            return true;
+        }
+        return true; // Still mark as found
+    } else if (isBeingDelayed) {
+        // The "We won’t show you this job again." message is gone, but we were delaying.
+        // This means it was likely unhidden. Cancel the hide.
+        delete jobCardLi.dataset.delayHide;
+        if (jobCardLi.dataset.originalDisplay) {
+            jobCardLi.style.display = jobCardLi.dataset.originalDisplay || '';
+            delete jobCardLi.dataset.originalDisplay;
+        } else if (jobCardLi.style.display === 'none') {
+            jobCardLi.style.display = ''; // Try to restore if no original display was set
+        }
+    } else if (jobCardLi && jobCardLi.dataset.originalDisplay && jobCardLi.style.display === 'none') {
+        // If we previously hid it and the message is gone, ensure it's visible
+        jobCardLi.style.display = jobCardLi.dataset.originalDisplay || '';
+        delete jobCardLi.dataset.originalDisplay;
     }
+
     return false;
 }
 
