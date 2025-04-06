@@ -3,30 +3,99 @@ document.addEventListener('DOMContentLoaded', () => {
     const delayUserHiddenCheckboxPopup = document.getElementById('delayUserHiddenPopup');
     const openOptionsPageLink = document.getElementById('openOptionsPage');
 
-    // Load the saved state of the main extension toggle
+    const enableJobFiltersCheckbox = document.getElementById('enableJobFilters');
+    const excludeTitleInput = document.getElementById('excludeTitle');
+    const addExcludeTitleButton = document.getElementById('addExcludeTitle');
+    const excludeLocationStateInput = document.getElementById('excludeLocationState');
+    const addExcludeLocationStateButton = document.getElementById('addExcludeLocationState');
+    const excludeLocationCityInput = document.getElementById('excludeLocationCity');
+    const addExcludeLocationCityButton = document.getElementById('addExcludeLocationCity');
+    const excludeCompanyInput = document.getElementById('excludeCompany');
+    const addExcludeCompanyButton = document.getElementById('addExcludeCompany');
+
+    // --- Load saved states ---
     chrome.storage.local.get('extensionEnabled', (data) => {
         extensionToggle.checked = data.extensionEnabled === true;
     });
 
-    // Save the state of the main extension toggle when it changes
-    extensionToggle.addEventListener('change', (event) => {
-        chrome.storage.local.set({ 'extensionEnabled': event.target.checked });
-    });
-
-    // Load the saved state for the delay setting and set the popup checkbox
     chrome.storage.local.get('delayUserHiddenEnabled', (data) => {
         delayUserHiddenCheckboxPopup.checked = data.delayUserHiddenEnabled === true;
     });
 
-    // Save the state for the delay setting when the popup checkbox changes
+    chrome.storage.local.get('enableJobFilters', (data) => {
+        enableJobFiltersCheckbox.checked = data.enableJobFilters === true;
+    });
+
+    // --- Save state on change ---
+    extensionToggle.addEventListener('change', (event) => {
+        chrome.storage.local.set({ 'extensionEnabled': event.target.checked });
+    });
+
     delayUserHiddenCheckboxPopup.addEventListener('change', (event) => {
         chrome.storage.local.set({ 'delayUserHiddenEnabled': event.target.checked });
     });
 
-    // Add event listener to open the options page
+    enableJobFiltersCheckbox.addEventListener('change', (event) => {
+        chrome.storage.local.set({ 'enableJobFilters': event.target.checked });
+    });
+
+    // --- Add filter functionality ---
+    addExcludeTitleButton.addEventListener('click', () => {
+        const title = excludeTitleInput.value.trim();
+        if (title) {
+            chrome.storage.local.get({ 'excludedTitles': [] }, (data) => {
+                const updatedTitles = [...data.excludedTitles, title];
+                chrome.storage.local.set({ 'excludedTitles': updatedTitles }, () => {
+                    excludeTitleInput.value = ''; // Clear the input
+                    console.log('Added to excluded titles:', title); // Optional feedback
+                });
+            });
+        }
+    });
+
+    addExcludeLocationStateButton.addEventListener('click', () => {
+        const location = excludeLocationStateInput.value.trim();
+        if (location) {
+            chrome.storage.local.get({ 'excludedLocationsState': [] }, (data) => {
+                const updatedLocations = [...data.excludedLocationsState, location];
+                chrome.storage.local.set({ 'excludedLocationsState': updatedLocations }, () => {
+                    excludeLocationStateInput.value = '';
+                    console.log('Added to excluded locations (state):', location);
+                });
+            });
+        }
+    });
+
+    addExcludeLocationCityButton.addEventListener('click', () => {
+        const city = excludeLocationCityInput.value.trim();
+        if (city) {
+            chrome.storage.local.get({ 'excludedLocationsCity': [] }, (data) => {
+                const updatedCities = [...data.excludedLocationsCity, city];
+                chrome.storage.local.set({ 'excludedLocationsCity': updatedCities }, () => {
+                    excludeLocationCityInput.value = '';
+                    console.log('Added to excluded locations (city):', city);
+                });
+            });
+        }
+    });
+
+    addExcludeCompanyButton.addEventListener('click', () => {
+        const company = excludeCompanyInput.value.trim();
+        if (company) {
+            chrome.storage.local.get({ 'excludedCompanies': [] }, (data) => {
+                const updatedCompanies = [...data.excludedCompanies, company];
+                chrome.storage.local.set({ 'excludedCompanies': updatedCompanies }, () => {
+                    excludeCompanyInput.value = '';
+                    console.log('Added to excluded companies:', company);
+                });
+            });
+        }
+    });
+
+    // --- Open options page ---
     if (openOptionsPageLink) {
         openOptionsPageLink.addEventListener('click', (event) => {
-            event.preventDefault(); // Prevent the link from navigating
+            event.preventDefault();
             chrome.runtime.openOptionsPage();
         });
     }
