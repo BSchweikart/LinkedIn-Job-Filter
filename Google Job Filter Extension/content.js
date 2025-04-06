@@ -160,14 +160,19 @@ function processJobs() {
                 'excludedLocationsCity': [],
                 'excludedCompanies': []
             }, (filterData) => {
+                //console.log("Filter Data Retrieved:", filterData); // ADDED LOGGING
+
                 const shouldEnableFilters = filterData.enableJobFilters;
                 const excludedTitles = filterData.excludedTitles.map(s => s.toLowerCase());
                 const excludedLocationsState = filterData.excludedLocationsState.map(s => s.toLowerCase());
                 const excludedLocationsCity = filterData.excludedLocationsCity.map(s => s.toLowerCase());
                 const excludedCompanies = filterData.excludedCompanies.map(s => s.toLowerCase());
 
-                console.log("Excluded Locations (State/Region):", excludedLocationsState);
-                console.log("Excluded Locations (City):", excludedLocationsCity);
+                //console.log("Should Enable Filters:", shouldEnableFilters); // ADDED LOGGING
+                //console.log("Excluded Titles:", excludedTitles); // ADDED LOGGING
+                //console.log("Excluded Locations (State/Region):", excludedLocationsState); // ADDED LOGGING
+                //console.log("Excluded Locations (City):", excludedLocationsCity); // ADDED LOGGING
+                //console.log("Excluded Companies:", excludedCompanies); // ADDED LOGGING
 
                 let jobListContainer;
                 let jobItems;
@@ -196,14 +201,14 @@ function processJobs() {
                             const jobLocation = jobLocationElement ? jobLocationElement.textContent.trim().toLowerCase() : '';
                             const jobCompany = jobCompanyElement ? jobCompanyElement.textContent.trim().toLowerCase() : '';
 
-                            console.log("Job Location Found:", jobLocation);
+                            //console.log("Job Title:", jobTitle); // ADDED LOGGING
+                            //console.log("Job Location Found:", jobLocation); // ADDED LOGGING
                             const locationParts = jobLocation.split(',').map(part => part.trim());
                             const cityFromLocation = locationParts[0] || '';
                             const stateFromLocation = locationParts[1] ? locationParts[1].trim().split(' ')[0] : ''; // Take only the state abbreviation
 
-                            console.log("City from Location:", cityFromLocation);
-                            console.log("State from Location:", stateFromLocation);
-                            console.log("Excluded Locations (State/Region):", excludedLocationsState);
+                            //console.log("City from Location:", cityFromLocation); // ADDED LOGGING
+                            //console.log("State from Location:", stateFromLocation); // ADDED LOGGING
 
                             let shouldHideByFilter = false;
 
@@ -215,21 +220,19 @@ function processJobs() {
                             const isStateExcluded = excludedLocationsState.some(state => stateFromLocation === state);
 
                             // --- City Filtering ---
-                            const isCityExcluded = excludedLocationsCity.some(city => cityFromLocation === city);
+                            const isCityExcluded = excludedLocationsCity.some(city => cityFromLocation.includes(city.trim().toLowerCase()));
 
                             let shouldHideByLocation = false;
 
-                            if (isCityExcluded) {
-                                // If the city is excluded, we need to check the state.
-                                if (isStateExcluded) {
-                                    shouldHideByLocation = true; // Hide if both city and state are excluded (Fayetteville, NC)
-                                } else if (excludedLocationsState.length === 0) {
-                                    shouldHideByLocation = true; // Hide if the city is excluded and no states are excluded (Broad Fayetteville exclusion)
-                                }
-                                // If the city is excluded BUT the state is NOT excluded, and there ARE excluded states,
-                                // we should NOT hide (this handles Fayetteville, AR when NC is excluded).
-                            } else if (isStateExcluded) {
-                                shouldHideByLocation = true; // Hide if the state is excluded, regardless of the city
+                            // Hide if BOTH city and state are excluded
+                            if (isCityExcluded && isStateExcluded) {
+                                shouldHideByLocation = true;
+                            }
+                            // If the city is excluded but the state is NOT, show (shouldHideByLocation remains false)
+
+                            // Hide if the state is excluded AND the city is NOT excluded
+                            else if (!isCityExcluded && isStateExcluded) {
+                                shouldHideByLocation = false; // Changed this to false to show Greensboro
                             }
 
                             if (shouldHideByLocation) {
@@ -240,7 +243,7 @@ function processJobs() {
                                 shouldHideByFilter = true;
                             }
 
-                            console.log("shouldHideByFilter for", jobLocation, "is", shouldHideByFilter);
+                            //console.log("shouldHideByFilter for", jobLocation, "is", shouldHideByFilter); // ADDED LOGGING
                             if (shouldHideByFilter) {
                                 if (item.style.display !== 'none') {
                                     item.dataset.originalDisplay = item.style.display || '';
