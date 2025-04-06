@@ -3,12 +3,16 @@
 <head>
   <title>LinkedIn Hider</title>
   <style>
-    body { font-family: sans-serif; width: 180px; } /* Increased width to accommodate the checkbox */
-    .toggle-container { display: flex; align-items: center; margin-top: 10px; }
+    body { font-family: sans-serif; width: 250px; } /* Adjust width as needed */
+    .toggle-container, .filter-options { margin-top: 10px; }
     input[type="checkbox"] { margin-right: 5px; }
     .settings-container { margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc; }
     .options-link { display: block; margin-top: 10px; font-size: 0.9em; color: #007bff; text-decoration: none; }
     .options-link:hover { text-decoration: underline; }
+    .filter-inputs > div { margin-bottom: 8px; }
+    .filter-inputs label { display: block; font-size: 0.9em; margin-bottom: 3px; }
+    .filter-inputs input[type="text"] { width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 3px; }
+    .filter-inputs button { padding: 6px 10px; font-size: 0.8em; }
   </style>
 </head>
 <body>
@@ -16,6 +20,37 @@
   <div class="toggle-container">
     <input type="checkbox" id="extensionToggle">
     <label for="extensionToggle">Hide Promoted Content</label>
+  </div>
+
+  <div class="filter-options">
+    <h3>Job Search Hide Options</h3>
+    <div class="toggle-container">
+      <input type="checkbox" id="enableJobFilters">
+      <label for="enableJobFilters">Enable Custom Filters</label>
+    </div>
+
+    <div class="filter-inputs">
+      <div>
+        <label for="excludeTitle">Title:</label>
+        <input type="text" id="excludeTitle" placeholder="e.g., Marketing Intern">
+        <button id="addExcludeTitle">Add</button>
+      </div>
+      <div>
+        <label for="excludeLocationState">Location State:</label>
+        <input type="text" id="excludeLocationState" placeholder="Ex: Texas, TX">
+        <button id="addExcludeLocationState">Add</button>
+      </div>
+      <div>
+        <label for="excludeLocationCity">Location City:</label>
+        <input type="text" id="excludeLocationCity" placeholder="e.g., Austin">
+        <button id="addExcludeLocationCity">Add</button>
+      </div>
+      <div>
+        <label for="excludeCompany">Company:</label>
+        <input type="text" id="excludeCompany" placeholder="e.g., Google">
+        <button id="addExcludeCompany">Add</button>
+      </div>
+    </div>
   </div>
 
   <div class="settings-container">
