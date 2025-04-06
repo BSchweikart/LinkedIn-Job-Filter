@@ -2,14 +2,50 @@
 <html>
 <head>
     <title>LinkedIn Promoted Job Hider Options</title>
+    <style>
+        body { font-family: sans-serif; width: 400px; margin: 20px; }
+        h1 { margin-bottom: 20px; }
+        .option-group { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .option-group h2 { margin-top: 0; margin-bottom: 10px; font-size: 1.2em; }
+        .filter-list label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .filter-list textarea { width: 100%; height: 100px; margin-bottom: 10px; box-sizing: border-box; }
+        button { padding: 10px 15px; font-size: 1em; cursor: pointer; }
+        .toggle-container { margin-bottom: 10px; }
+    </style>
 </head>
 <body>
     <h1>LinkedIn Promoted Job Hider Options</h1>
 
-    <div>
-        <input type="checkbox" id="delayUserHidden" name="delayUserHidden">
-        <label for="delayUserHidden">Enable a 5-second delay when hiding jobs you've manually hidden</label>
+    <div class="option-group">
+        <h2>General Settings</h2>
+        <div class="toggle-container">
+            <input type="checkbox" id="delayUserHidden" name="delayUserHidden">
+            <label for="delayUserHidden">Enable a 5-second delay when hiding jobs you've manually hidden</label>
+        </div>
     </div>
+
+    <div class="option-group">
+        <h2>Custom Job Filtering</h2>
+        <div class="toggle-container">
+            <input type="checkbox" id="enableJobFiltersOption" name="enableJobFiltersOption">
+            <label for="enableJobFiltersOption">Enable Custom Job Filtering (by Title, Location, Company)</label>
+        </div>
+        <div class="filter-list">
+            <label for="excludedTitles">Job Titles to Exclude (one per line):</label>
+            <textarea id="excludedTitles"></textarea>
+
+            <label for="excludedLocationsState">Job Locations to Exclude (State/Region - one per line, e.g., Texas, TX):</label>
+            <textarea id="excludedLocationsState"></textarea>
+
+            <label for="excludedLocationsCity">Job Locations to Exclude (City - one per line, e.g., Austin):</label>
+            <textarea id="excludedLocationsCity"></textarea>
+
+            <label for="excludedCompanies">Job Companies to Exclude (one per line):</label>
+            <textarea id="excludedCompanies"></textarea>
+        </div>
+    </div>
+
+    <button id="saveOptions">Save & Refresh Page</button>
 
     <script src="options.js"></script>
 </body>
