@@ -153,21 +153,122 @@ function hidePromotedJobCard(jobCardLi) {
 function processJobs() {
     isExtensionEnabled(enabled => {
         if (enabled) {
-            let jobListContainer;
-            if (window.location.href.startsWith('https://www.linkedin.com/jobs/search') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
-                jobListContainer = document.querySelector('div.scaffold-layout__list');
-                if (jobListContainer) {
-                    const jobItems = jobListContainer.querySelectorAll('li.scaffold-layout__list-item');
+            chrome.storage.local.get({
+                'enableJobFilters': false,
+                'excludedTitles': [],
+                'excludedLocationsState': [],
+                'excludedLocationsCity': [],
+                'excludedCompanies': []
+            }, (filterData) => {
+                const shouldEnableFilters = filterData.enableJobFilters;
+                const excludedTitles = filterData.excludedTitles.map(s => s.toLowerCase());
+                const excludedLocationsState = filterData.excludedLocationsState.map(s => s.toLowerCase());
+                const excludedLocationsCity = filterData.excludedLocationsCity.map(s => s.toLowerCase());
+                const excludedCompanies = filterData.excludedCompanies.map(s => s.toLowerCase());
+
+                console.log("Excluded Locations (State/Region):", excludedLocationsState);
+                console.log("Excluded Locations (City):", excludedLocationsCity);
+
+                let jobListContainer;
+                let jobItems;
+
+                if (window.location.href.startsWith('https://www.linkedin.com/jobs/search') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
+                    jobListContainer = document.querySelector('div.scaffold-layout__list');
+                    if (jobListContainer) {
+                        jobItems = jobListContainer.querySelectorAll('li.scaffold-layout__list-item');
+                    }
+                } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
+                    jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
+                }
+
+                if (jobItems) {
                     jobItems.forEach(item => {
-                        hidePromotedJobCard(item);
+                        hidePromotedJobCard(item); // Keep existing promoted job hiding
+
+                        if (shouldEnableFilters) {
+                            // --- Get job details from the DOM ---
+                            const jobTitleElement = item.querySelector('a.job-card-list__title--link strong');
+                            const jobLocationElement = item.querySelector('ul.job-card-container__metadata-wrapper li span');
+                            const jobCompanyElement = item.querySelector('div.artdeco-entity-lockup__subtitle span');
+                            const jobCardContainer = item.querySelector('div.job-card-container'); // Target the job-card-container
+
+                            const jobTitle = jobTitleElement ? jobTitleElement.textContent.trim().toLowerCase() : '';
+                            const jobLocation = jobLocationElement ? jobLocationElement.textContent.trim().toLowerCase() : '';
+                            const jobCompany = jobCompanyElement ? jobCompanyElement.textContent.trim().toLowerCase() : '';
+
+                            console.log("Job Location Found:", jobLocation);
+                            const locationParts = jobLocation.split(',').map(part => part.trim());
+                            const cityFromLocation = locationParts[0] || '';
+                            const stateFromLocation = locationParts[1] ? locationParts[1].trim().split(' ')[0] : ''; // Take only the state abbreviation
+
+                            console.log("City from Location:", cityFromLocation);
+                            console.log("State from Location:", stateFromLocation);
+                            console.log("Excluded Locations (State/Region):", excludedLocationsState);
+
+                            let shouldHideByFilter = false;
+
+                            if (excludedTitles.some(title => jobTitle.includes(title))) {
+                                shouldHideByFilter = true;
+                            }
+
+                            // --- State/Region Filtering ---
+                            const isStateExcluded = excludedLocationsState.some(state => stateFromLocation === state);
+
+                            // --- City Filtering ---
+                            const isCityExcluded = excludedLocationsCity.some(city => cityFromLocation === city);
+
+                            let shouldHideByLocation = false;
+
+                            if (isCityExcluded) {
+                                // If the city is excluded, we need to check the state.
+                                if (isStateExcluded) {
+                                    shouldHideByLocation = true; // Hide if both city and state are excluded (Fayetteville, NC)
+                                } else if (excludedLocationsState.length === 0) {
+                                    shouldHideByLocation = true; // Hide if the city is excluded and no states are excluded (Broad Fayetteville exclusion)
+                                }
+                                // If the city is excluded BUT the state is NOT excluded, and there ARE excluded states,
+                                // we should NOT hide (this handles Fayetteville, AR when NC is excluded).
+                            } else if (isStateExcluded) {
+                                shouldHideByLocation = true; // Hide if the state is excluded, regardless of the city
+                            }
+
+                            if (shouldHideByLocation) {
+                                shouldHideByFilter = true;
+                            }
+
+                            if (excludedCompanies.some(company => jobCompany.includes(company))) {
+                                shouldHideByFilter = true;
+                            }
+
+                            console.log("shouldHideByFilter for", jobLocation, "is", shouldHideByFilter);
+                            if (shouldHideByFilter) {
+                                if (item.style.display !== 'none') {
+                                    item.dataset.originalDisplay = item.style.display || '';
+                                    item.style.display = 'none';
+                                    item.classList.add('linkedin-job-filter-hidden');
+                                }
+                                if (jobCardContainer && jobCardContainer.style.display !== 'none') {
+                                    jobCardContainer.dataset.originalDisplay = jobCardContainer.style.display || '';
+                                    jobCardContainer.style.display = 'none';
+                                    jobCardContainer.classList.add('linkedin-job-filter-hidden');
+                                }
+                            } else {
+                                // If shouldHideByFilter is false, ensure it's visible in case it was previously hidden
+                                if (item.classList.contains('linkedin-job-filter-hidden')) {
+                                    item.style.display = item.dataset.originalDisplay || '';
+                                    item.classList.remove('linkedin-job-filter-hidden');
+                                    delete item.dataset.originalDisplay;
+                                }
+                                if (jobCardContainer && jobCardContainer.classList.contains('linkedin-job-filter-hidden')) {
+                                    jobCardContainer.style.display = jobCardContainer.dataset.originalDisplay || '';
+                                    jobCardContainer.classList.remove('linkedin-job-filter-hidden');
+                                    delete jobCardContainer.dataset.originalDisplay;
+                                }
+                            }
+                        }
                     });
                 }
-            } else if (window.location.href.startsWith('https://www.linkedin.com/jobs/')) {
-                const jobItems = document.querySelectorAll('li.discovery-templates-entity-item');
-                jobItems.forEach(item => {
-                    hidePromotedJobCard(item);
-                });
-            }
+            });
         }
     });
 }
@@ -207,7 +308,8 @@ window.addEventListener('load', () => {
             logExtensionInfo();
             currentUrl = window.location.href; // Initialize currentUrl
             if (window.location.href.startsWith('https://www.linkedin.com/jobs/') || window.location.href.startsWith('https://www.linkedin.com/jobs/collections')) {
-                processJobs();
+                // Introduce a small delay on initial load
+                setTimeout(processJobs, 500);
             } else if (window.location.href.startsWith('https://www.linkedin.com/feed/') || window.location.href === 'https://www.linkedin.com/' || window.location.href === 'https://www.linkedin.com/feed/') {
                 processFeed();
             }
@@ -231,3 +333,11 @@ window.addEventListener('popstate', () => {
 window.addEventListener('hashchange', () => {
     // Removed runProcessing();
 });
+
+const style = document.createElement('style');
+style.textContent = `
+  .linkedin-job-filter-hidden {
+    display: none !important;
+  }
+`;
+document.head.appendChild(style);
