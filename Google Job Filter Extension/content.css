@@ -1,4 +1,8 @@
-.hidden-promoted {
+/*.hidden-promoted {
     display: none !important;
     visibility: hidden !important;
+}
+
+.linkedin-job-filter-hidden {
+    display: none !important;
 }
