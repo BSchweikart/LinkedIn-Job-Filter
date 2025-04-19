@@ -54,15 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     addExcludeLocationStateButton.addEventListener('click', () => {
-        const location = excludeLocationStateInput.value.trim();
-        if (location) {
-            chrome.storage.local.get({ 'excludedLocationsState': [] }, (data) => {
-                const updatedLocations = [...data.excludedLocationsState, location];
-                chrome.storage.local.set({ 'excludedLocationsState': updatedLocations }, () => {
-                    excludeLocationStateInput.value = '';
-                    console.log('Added to excluded locations (state):', location);
+        const locationsInput = excludeLocationStateInput.value.trim();
+        if (locationsInput) {
+            const locationsArray = locationsInput.split(',').map(loc => loc.trim()).filter(loc => loc !== '');
+            if (locationsArray.length > 0) {
+                chrome.storage.local.get({ 'excludedLocationsState': [] }, (data) => {
+                    const updatedLocations = [...data.excludedLocationsState, ...locationsArray];
+                    chrome.storage.local.set({ 'excludedLocationsState': updatedLocations }, () => {
+                        excludeLocationStateInput.value = '';
+                        console.log('Added to excluded locations (state):', locationsArray);
+                    });
                 });
-            });
+            }
         }
     });
 
