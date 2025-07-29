@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Promoted Hider",
-  "version": "0.0.160",
+  "version": "0.0.200",
   "description": "Hides promoted content on LinkedIn.",
   "options_page": "options.html",
   "permissions": [
