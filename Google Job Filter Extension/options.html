@@ -11,13 +11,23 @@
         .filter-list textarea { width: 100%; height: 100px; margin-bottom: 10px; box-sizing: border-box; }
         button { padding: 10px 15px; font-size: 1em; cursor: pointer; }
         .toggle-container { margin-bottom: 10px; }
+        /* NEW: Style to allow multiline example in label */
+        .multiline-example { white-space: pre-wrap; font-weight: normal; font-size: 0.9em; color: #555;}
     </style>
 </head>
 <body>
     <h1>LinkedIn Promoted Job Hider Options</h1>
 
     <div class="option-group">
-        <h2>General Settings</h2>
+        <h2>Extension Control & Basic Settings</h2>
+        <div class="toggle-container">
+            <input type="checkbox" id="extensionMasterToggle" name="extensionMasterToggle">
+            <label for="extensionMasterToggle">Enable/Disable Extension Entirely</label>
+        </div>
+        <div class="toggle-container">
+            <input type="checkbox" id="hidePromotedContentOption" name="hidePromotedContentOption">
+            <label for="hidePromotedContentOption">Hide Promoted Content</label>
+        </div>
         <div class="toggle-container">
             <input type="checkbox" id="delayUserHidden" name="delayUserHidden">
             <label for="delayUserHidden">Enable a 5-second delay when hiding jobs you've manually hidden</label>
@@ -34,7 +44,11 @@
             <label for="excludedTitles">Job Titles to Exclude (one per line):</label>
             <textarea id="excludedTitles"></textarea>
 
-            <label for="excludedLocationsState">Job Locations to Exclude (State/Region - one per line, e.g., Texas OR TX):</label>
+            <label for="excludedLocationsState">Job Locations to Exclude (State/Region - one per line):
+                <span class="multiline-example">e.g.,
+Texas
+TX</span>
+            </label>
             <textarea id="excludedLocationsState"></textarea>
 
             <label for="excludedLocationsCity">Job Locations to Exclude (City - one per line, e.g., Austin):</label>
@@ -42,6 +56,19 @@
 
             <label for="excludedCompanies">Job Companies to Exclude (one per line):</label>
             <textarea id="excludedCompanies"></textarea>
+        </div>
+    </div>
+
+    <div class="option-group">
+        <h2>Hard State Exclusion Filter</h2>
+        <p>If a job is in a state listed here, it will always be hidden, regardless of city or other location rules.</p>
+        <div class="filter-list">
+            <label for="excludedLocationsHardState">States to Always Exclude (one per line):
+                <span class="multiline-example">e.g.,
+California
+CA</span>
+            </label>
+            <textarea id="excludedLocationsHardState"></textarea>
         </div>
     </div>
 
