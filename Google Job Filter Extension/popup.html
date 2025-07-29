@@ -3,30 +3,45 @@
 <head>
   <title>LinkedIn Hider</title>
   <style>
-    body { font-family: sans-serif; width: 250px; } /* Adjust width as needed */
-    .toggle-container, .filter-options { margin-top: 10px; }
+    body { font-family: sans-serif; width: 280px; } /* Adjusted width slightly for better fit */
+    .option-group { margin-top: 10px; padding: 10px; border: 1px solid #eee; border-radius: 5px; }
+    .option-group h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
+    .toggle-container { margin-bottom: 8px; }
     input[type="checkbox"] { margin-right: 5px; }
-    .settings-container { margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc; }
-    .options-link { display: block; margin-top: 10px; font-size: 0.9em; color: #007bff; text-decoration: none; }
+    .settings-container { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ccc; text-align: center; } /* Centered link */
+    .options-link { display: inline-block; /* Changed to inline-block for centering */ margin-top: 10px; font-size: 0.9em; color: #007bff; text-decoration: none; }
     .options-link:hover { text-decoration: underline; }
     .filter-inputs > div { margin-bottom: 8px; }
     .filter-inputs label { display: block; font-size: 0.9em; margin-bottom: 3px; }
-    .filter-inputs input[type="text"] { width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 3px; }
-    .filter-inputs button { padding: 6px 10px; font-size: 0.8em; }
+    .filter-inputs input[type="text"] { width: calc(100% - 70px); /* Adjust width to make room for button */ padding: 6px; box-sizing: border-box; margin-bottom: 3px; display: inline-block; vertical-align: middle; }
+    .filter-inputs button { padding: 6px 10px; font-size: 0.8em; display: inline-block; vertical-align: middle; width: 60px; /* Fixed width for consistency */ }
+    p.explanation { font-size: 0.85em; color: #555; margin-top: 5px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
   <h2>LinkedIn Hider</h2>
-  <div class="toggle-container">
-    <input type="checkbox" id="extensionToggle">
-    <label for="extensionToggle">Hide Promoted Content</label>
+
+  <div class="option-group">
+    <h3>Extension Control</h3>
+    <div class="toggle-container">
+      <input type="checkbox" id="extensionMasterTogglePopup">
+      <label for="extensionMasterTogglePopup">Enable/Disable Extension Entirely</label>
+    </div>
+    <div class="toggle-container">
+      <input type="checkbox" id="hidePromotedContentTogglePopup">
+      <label for="hidePromotedContentTogglePopup">Hide Promoted Content</label>
+    </div>
+    <div class="toggle-container">
+      <input type="checkbox" id="delayUserHiddenPopup" name="delayUserHiddenPopup">
+      <label for="delayUserHiddenPopup">Delay hiding manually hidden jobs (5 seconds)</label>
+    </div>
   </div>
 
-  <div class="filter-options">
-    <h3>Job Search Hide Options</h3>
+  <div class="option-group">
+    <h3>Custom Job Filters</h3>
     <div class="toggle-container">
       <input type="checkbox" id="enableJobFilters">
-      <label for="enableJobFilters">Enable Custom Filters</label>
+      <label for="enableJobFilters">Enable Custom Filters (Title, Location, Company)</label>
     </div>
 
     <div class="filter-inputs">
@@ -37,7 +52,7 @@
       </div>
       <div>
         <label for="excludeLocationState">Location State:</label>
-        <input type="text" id="excludeLocationState" placeholder="Ex: Texas OR TX">
+        <input type="text" id="excludeLocationState" placeholder="e.g., Texas OR TX | Texas, TX">
         <button id="addExcludeLocationState">Add</button>
       </div>
       <div>
@@ -53,12 +68,21 @@
     </div>
   </div>
 
-  <div class="settings-container">
-    <input type="checkbox" id="delayUserHiddenPopup" name="delayUserHiddenPopup">
-    <label for="delayUserHiddenPopup">Delay hiding manually hidden jobs (5 seconds)</label>
+  <div class="option-group">
+    <h3>Hard State Exclusion Filter</h3>
+    <p class="explanation">Adding a state here will hide ALL jobs in that state, regardless of city or other rules.</p>
+    <div class="filter-inputs">
+      <div>
+        <label for="excludeLocationHardState">State to Always Exclude:</label>
+        <input type="text" id="excludeLocationHardState" placeholder="e.g., California OR CA | California, CA">
+        <button id="addExcludeLocationHardState">Add</button>
+      </div>
+    </div>
   </div>
 
-  <a href="#" id="openOptionsPage" class="options-link">More Settings</a>
+  <div class="settings-container">
+    <a href="#" id="openOptionsPage" class="options-link">Edit All Filters</a>
+  </div>
 
   <script src="popup.js"></script>
 </body>
