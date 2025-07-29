@@ -16,11 +16,10 @@ Once again, this is just a personal project to test boundaries and see what’s 
 ---
 
 ## Project Goals & Stages
-- **Dynamic Promoted Content Filter** – Enhance filtering to dynamically detect and remove containers labeled **"Promoted."**  
-- **Navigation Support** – Ensure functionality works not just on direct load but also when navigating within LinkedIn.  
-- **Toggle Switch** – Add a popup UI toggle to enable/disable the extension easily.  
-- **Automatic Boolean Searches** – Automate complex LinkedIn searches to reduce manual effort.  
-- **Dynamic Filtering** – Implement filters that adjust based on Boolean search parameters.  
+* **Dynamic Promoted Content Filter** – Implemented to dynamically detect and remove containers labeled **"Promoted."** This feature is largely complete (approx. 95-99%), with minor edge cases still under observation.
+* **Navigation Support** – Achieved. The extension now functions consistently across various LinkedIn navigation events, not just on direct page load.
+* **Toggle Switch** – Implemented and fully functional, including the main extension toggle, promoted content toggle, delay for manually hidden jobs, and custom filters toggle.
+* **Automated Content Filtering (formerly "Automatic Boolean Searches" and "Dynamic Filtering")** – This feature now provides robust filtering based on custom exclusion lists for job titles, company names, and locations (city, state, and a new 'hard state' exclusion). Future enhancements will focus on expanding and refining these filtering capabilities to provide more granular control and potentially automate more complex search parameters beyond simple exclusions.
 
 ---
 
@@ -46,12 +45,14 @@ Updates will be released in batches, with each section being worked on individua
 ---
 
 ## Planned Enhancements
-- Custom search presets for different job roles.
 - UI improvements for better user control.
-- Expansion to support **Safari** and **Firefox**.
+- Expansion to support Safari and Firefox is planned for future stages, after more core functionalities are thoroughly completed and tested to minimize errors.
 
 ---
 
 ## License
 This is a personal project and does not currently have a formal license. If that changes, the license details will be updated.
 
+---
+
+Once more features are completed, a more robust README and/or instruction file will be added.
