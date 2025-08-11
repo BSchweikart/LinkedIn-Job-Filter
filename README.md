@@ -1,58 +1,96 @@
 # Google Extension Test for LinkedIn
 
+> **TL;DR:**  
+> A Chrome extension that improves LinkedIn by dynamically removing promoted content and providing customizable job filtering based on titles, companies, and locations. Features include navigation support, multiple toggles, and plans for expanded filters and cross-browser support. All data processing happens locally with no user data collected.
+
 ## Overview
-This repository may switch between public and private at any time. This is a personal project designed to explore the capabilities and limitations of the extension.
-
-LinkedIn's basic search functions are underwhelming, and I got tired of relying on Boolean searches while dealing with excessive promoted content in both the feed and job listings.
-
-This extension is being developed to handle all of that.
-
-Currently, promoted content is blocked by targeting containers labeled with **"Promoted"**, but I need to optimize performance, especially for users with older CPUs and limited RAM.
-
-For now, please don't follow the project, as my focus may shift to other things.
-
-Once again, this is just a personal project to test boundaries and see what’s possible.
+This is a **personal, open-source Chrome extension** aimed at improving the LinkedIn experience by removing promoted content and providing advanced filtering options.  
+LinkedIn’s default search tools are limited, and excessive promoted content clutters both the feed and job listings. This extension addresses those issues with dynamic filtering and enhanced navigation handling.
 
 ---
 
-## Project Goals & Stages
-* **Dynamic Promoted Content Filter** – Implemented to dynamically detect and remove containers labeled **"Promoted."** This feature is largely complete (approx. 95-99%), with minor edge cases still under observation.
-* **Navigation Support** – Achieved. The extension now functions consistently across various LinkedIn navigation events, not just on direct page load.
-* **Toggle Switch** – Implemented and fully functional, including the main extension toggle, promoted content toggle, delay for manually hidden jobs, and custom filters toggle.
-* **Automated Content Filtering (formerly "Automatic Boolean Searches" and "Dynamic Filtering")** – This feature now provides robust filtering based on custom exclusion lists for job titles, company names, and locations (city, state, and a new 'hard state' exclusion). Future enhancements will focus on expanding and refining these filtering capabilities to provide more granular control and potentially automate more complex search parameters beyond simple exclusions.
+## Current Features
+
+### 1. Dynamic Promoted Content Filter
+- Detects and removes containers labeled **"Promoted"** from the LinkedIn feed and job listings.  
+- Currently ~95–99% effective, with smaller, low-priority subsections intentionally excluded.  
+- For remaining edge cases, see **Known Issues**.
 
 ---
 
-## Installation (For Testing Purposes) Chrome
-1. Download or clone this repository.
-2. Open Chrome and go to `chrome://extensions/`.
-3. Enable **Developer Mode** (toggle in the top right).
-4. Click **Load Unpacked** and select the extension folder.
-5. The extension should now appear in your browser.
+### 2. Navigation Support
+- Works across most LinkedIn pages and navigation events — not just on initial page load.  
+- Handles dynamic content loading during browsing.  
+- For rare navigation-related edge cases, see **Known Issues**.
 
 ---
 
-## Known Issues & Limitations
-- Filtering might not catch all promoted content if LinkedIn changes its ad structure.
-- Performance optimization is still in progress for older systems.
-- Boolean search automation is planned but not yet implemented.
+### 3. User Controls & Toggles
+The extension provides **four independent toggle switches**:  
+1. **Enable/Disable Extension Entirely** – Quickly turn the extension on or off.  
+2. **Hide Promoted Content** – Enable or disable the promoted content filter.  
+3. **Delay Hiding Manually Hidden Jobs** – Adds a 5-second delay before hiding manually hidden job posts.  
+4. **Enable Custom Filters** – Activates advanced filtering rules for job listings.
 
 ---
 
-## Update Process
-Updates will be released in batches, with each section being worked on individually. New versions will only be published as specific features near completion.
+### 4. Automated Content Filtering (Custom Filters)
+When **Custom Filters** are enabled, the extension filters job listings based on exclusion lists for:  
+- **Title** – Hide jobs matching excluded keywords in the job title.  
+- **Company** – Hide jobs from specific companies.  
+- **City** – Hide jobs in excluded cities.  
+- **State** – Hide jobs in excluded states.
+
+**Special Case:**  
+- **Hard State Exclusion** – Completely hides any job from specified states, bypassing other filtering logic. Implemented to address a scenario where the main logic worked *too* well.
+
+For upcoming improvements to filtering and control options, see **Planned Enhancements**.
+
+---
+
+## Installation (Testing in Chrome)
+1. Download or clone this repository.  
+2. Open Chrome and go to `chrome://extensions/`.  
+3. Enable **Developer Mode** (top right).  
+4. Click **Load Unpacked** and select the extension folder.  
+5. The extension will now appear in your browser.
+
+---
+
+## Known Issues
+
+- **Promoted Content Detection** – In rare cases, small sub-sections of promoted content are not removed. These sections are intentionally excluded for now as they are not the primary focus of the extension.  
+- **Navigation Edge Cases** – Occasionally, when starting a new search, the extension does not fire, causing promoted content or unfiltered jobs to appear. This issue is random, only occurs at the *start* of a search (not when navigating results), and is resolved by reloading the page. Attempts to fix it have caused timing conflicts, so there are no current plans to address it.  
+- **Performance Disclaimer** – While developed on a slower computer, performance impact has been minimal. Filtering may be slightly slower on older CPUs or low-RAM systems during rapid scrolling or heavy navigation, but multiple optimizations have already been implemented.  
+- **LinkedIn Structure Changes** – Any major change in LinkedIn’s HTML/CSS structure could temporarily break promoted content detection until the extension is updated.
+
+---
+
+## Development & Updates
+
+- **Incremental Development:** Features are developed, tested, and refined individually to ensure stability before release.  
+- **Batch Releases:** Updates are released in batches, with new versions published once specific features reach near-completion.  
+- **Prioritization:** Development priorities may shift based on testing results, user feedback, emerging challenges, and available free time.  
+- **Public Repository:** The project is public to maintain transparency and reassure users that no data is collected or sent externally; all processing and storage happen locally on the user’s machine.  
+- **Issue Resolution:** Known issues are documented and addressed based on their impact and feasibility.  
+- **Future Plans:** Major enhancements and expansions will be outlined in the **Planned Enhancements** section as development progresses.
 
 ---
 
 ## Planned Enhancements
-- UI improvements for better user control.
-- Expansion to support Safari and Firefox is planned for future stages, after more core functionalities are thoroughly completed and tested to minimize errors.
+
+- **User Interface Improvements:** Develop a more intuitive UI for easier control and configuration of filters and toggles.  
+- **Expanded Filtering:** The next major update will introduce new filtering logic based on job location type — **On-Site, Hybrid, and Remote**. For example, users may exclude on-site or hybrid jobs in a location but remain open to remote jobs there. This feature will include a toggle to bypass the hard state exclusion filter during testing to optimize effectiveness.  
+- **Cross-Browser Support:** Extend compatibility to **Safari, Firefox, Brave**, and explore support for other browsers once core Chrome functionality is stable and well-tested.  
+- **Performance Optimization:** Continue refining the extension to improve speed and efficiency, especially on older or lower-spec systems.  
+- **Robust Error Handling:** Implement better detection and recovery mechanisms for LinkedIn structure changes to minimize downtime after site updates.  
+- **Documentation:** Provide detailed user guides and example configurations as features mature.
 
 ---
 
 ## License
-This is a personal project and does not currently have a formal license. If that changes, the license details will be updated.
+This project is public but currently **unlicensed**. License details will be added if that changes.
 
 ---
 
-Once more features are completed, a more robust README and/or instruction file will be added.
+Once core features are complete, a more detailed README and user guide will be added.
